@@ -130,7 +130,6 @@ impl<'p> Parser<'p> {
     fn parse_number<T: FromStr>(&mut self, limit: u8) -> Option<T>
     {
         let end = self.find(limit);
-        println!("parse_number {}", self.pos)
         match end {
             None => None,
             Some(num) => {
