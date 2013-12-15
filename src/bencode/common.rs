@@ -2,7 +2,7 @@ use extra::treemap::TreeMap;
 
 #[deriving(Clone, Eq)]
 pub enum Bencode {
-    Number(uint),
+    Number(int),
     String(~[u8]),
     List(List),
     Dictionary(~Dictionary),

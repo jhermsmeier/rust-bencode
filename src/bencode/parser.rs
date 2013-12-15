@@ -6,16 +6,17 @@ use common::Bencode;
 // srsly rust?
 use common::{Null, Dictionary, List, String, Number};
 use std::vec::append_one;
+use std::from_str::FromStr;
 
-pub struct Parser {
-    priv data: ~[u8],
+pub struct Parser<'p> {
+    priv data: &'p [u8],
     priv chr: u8,
     priv pos: uint
 }
 
-impl Parser {
+impl<'p> Parser<'p> {
 
-    pub fn new(data: ~[u8]) -> Parser
+    pub fn new(data: &'p [u8]) -> Parser<'p>
     {
         let mut P = Parser {
             data: data,
@@ -120,15 +121,16 @@ impl Parser {
     fn parse_integer(&mut self) -> Result<Bencode, Error>
     {
         self.pos += 1;
-        match self.parse_number(0x65u8) {
+        match self.parse_number::<int>(0x65u8) {
             None => self.error(~"invalid integer"),
             Some(val) => Ok(Number(val))
         }
     }
 
-    fn parse_number(&mut self, limit: u8) -> Option<uint>
+    fn parse_number<T: FromStr>(&mut self, limit: u8) -> Option<T>
     {
         let end = self.find(limit);
+        println!("parse_number {}", self.pos)
         match end {
             None => None,
             Some(num) => {
@@ -137,7 +139,7 @@ impl Parser {
                                 .slice_to(num - self.pos)
                 );
                 self.pos = num + 1;
-                let result : Option<uint> = from_str(slice);
+                let result : Option<T> = from_str::<T>(slice);
                 result
             }
         }
@@ -163,7 +165,7 @@ impl Parser {
 
     fn parse_bytes(&mut self) -> Result<Bencode, Error>
     {
-        match self.parse_number(0x3Au8) {
+        match self.parse_number::<uint>(0x3Au8) {
             None => {
                 self.error(~"invalid byte length")
             },
@@ -187,6 +189,6 @@ pub fn from_reader(rdr: &mut Reader) -> Result<Bencode, Error>
 }
 pub fn from_string(data: ~str) -> Result<Bencode, Error>
 {
-    let mut parser = Parser::new(data.into_bytes());
+    let mut parser = Parser::new(data.as_bytes());
     parser.parse()
 }
